@@ -1,0 +1,7 @@
+MAILNOTIFY_USER=user@example.com
+MAILNOTIFY_PWD=
+MAILNOTIFY_SERVER=imaps://outlook.office365.com
+MAILNOTIFY_APIKEY=
+MAILNOTIFY_SOURCE=49xxxyyyyyyyy
+MAILNOTIFY_DEST=49xxxyyyyyyyy
+MAILNOTIFY_NAME="users example mailbox"

@@ -7,8 +7,7 @@
 # bash
 # curl
 # sed
-# logger
-# messagebird account
+# messagebird account (with apikey)
 # 
 #
 # Outline:
