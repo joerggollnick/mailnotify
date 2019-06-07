@@ -1,0 +1,78 @@
+#!/bin/bash
+
+#
+# script for notify about number of mails and place a voice call
+#
+# Preconditions:
+# bash
+# curl
+# sed
+# logger
+# messagebird account
+# 
+#
+# Outline:
+#
+# 1) Read configuration
+# 
+# 2) Get number of unseen emails from INBOX of imaps account
+#
+# 3) Place a call via messagebird api
+#
+# 4) Flag all mails as \Seen
+#
+
+#
+# Read configuration
+# 
+
+if [ ${#} -lt 1 ]
+then
+   printf "No argument given\n"
+   exit 1
+fi
+
+#
+# Syntax
+# MAILNOTIFY_USER=<user>
+# MAILNOTIFY_PWD=<pwd>
+# MAILNOTIFY_SERVER=<url> imaps://outlook.office365.com
+# MAILNOTIFY_APIKEY=<messagebird key>
+# MAILNOTIFY_SOURCE=<pure number without +>
+# MAILNOTIFY_DEST=<pure number without +>
+# MAILNOTIFY_NAME=<user friendly name for account>
+
+configfile=${1}
+
+source ${configfile}
+
+unseen=$(curl --silent --url ${MAILNOTIFY_SERVER} --user ${MAILNOTIFY_USER}:${MAILNOTIFY_PWD} --request "STATUS INBOX (unseen)"  | sed -E -e "s/.*\(unseen ([[:digit:]]*)\).*$/\1/")
+
+if [ ${unseen} -gt 0 ]
+then
+    
+    lang="en-US"
+
+    text=$(printf "<prosody rate=\\\\\"-10%%\\\\\">Automated call. For account ${MAILNOTIFY_NAME} are <break time=\\\\\"100ms\\\\\"/> ${unseen} <break time=\\\\\"100ms\\\\\"/>emails available.</prosody>")
+
+    curl https://voice.messagebird.com/calls \
+	 -H "Authorization: AccessKey ${MAILNOTIFY_APIKEY}" \
+	 -d $'{
+      	 "source" : "+'"${MAILNOTIFY_SOURCE}"'",
+      	 "destination" : "+'"${MAILNOTIFY_DEST}"'",
+      	 "callFlow" : {
+         	     "title" : "Flow",
+          	     "steps" : [
+              	     {
+                     "action" : "say",
+                     "options" : {
+                      	       "payload" : "'"${text}"'",
+                      	       "language" : "'"${lang}"'",
+                     	       "voice" : "female"
+                  	       }
+		     }
+          	     ]	     
+      		     }
+  		     }'
+    curl -o /dev/null --silent --url "${MAILNOTIFY_SERVER}/inbox" --user ${MAILNOTIFY_USER}:${MAILNOTIFY_PWD} --request "STORE 1:* +FLAGS \Seen"
+fi
