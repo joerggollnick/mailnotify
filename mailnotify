@@ -40,6 +40,7 @@ fi
 # MAILNOTIFY_SOURCE=<pure number without +>
 # MAILNOTIFY_DEST=<pure number without +>
 # MAILNOTIFY_NAME=<user friendly name for account>
+# MAILNOTIFY_SEEN=<set \Seen if variable is set to yes> 
 
 configfile=${1}
 
@@ -73,5 +74,8 @@ then
           	     ]	     
       		     }
   		     }'
-    curl -o /dev/null --silent --url "${MAILNOTIFY_SERVER}/inbox" --user ${MAILNOTIFY_USER}:${MAILNOTIFY_PWD} --request "STORE 1:* +FLAGS \Seen"
+    if [ ${MAILNOTIFY_SEEN} == "yes" ]
+    then
+	curl -o /dev/null --silent --url "${MAILNOTIFY_SERVER}/inbox" --user ${MAILNOTIFY_USER}:${MAILNOTIFY_PWD} --request "STORE 1:* +FLAGS \Seen"
+    fi
 fi
